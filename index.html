@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Xmas Shopping Checklist</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#faf7f2;--card:#ffffff;--text:#1f2a24;--muted:#6b7068;--line:#e3ddd2;--accent:#b3262e;--green:#2f6b4f;--input:#f6f2ea;color-scheme:light}
+html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 110px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15191a;--card:#1e2425;--text:#eef1ee;--muted:#9aa59f;--line:#2e3637;--accent:#e5626a;--green:#6cc29a;--input:#262e2f;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#15191a;--card:#1e2425;--text:#eef1ee;--muted:#9aa59f;--line:#2e3637;--accent:#e5626a;--green:#6cc29a;--input:#262e2f;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--card);z-index:10}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:9;background:var(--card);border-bottom:1px solid var(--line);padding:12px 16px}
+.wrap{max-width:640px;margin:0 auto}
+h1{font-size:20px;margin:0 0 8px}
+.stats{display:flex;gap:16px;flex-wrap:wrap}
+.stat small{display:block;color:var(--muted);font-size:12px}
+.stat b{font-size:20px}
+.stat.total b{color:var(--accent)}
+.bar{height:6px;background:var(--line);border-radius:3px;margin-top:10px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--green);transition:width .2s}
+main{padding:16px 16px 0}
+section{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:0 auto 14px;max-width:640px}
+.sh{display:flex;gap:8px;align-items:center}
+.pname{flex:1;min-width:0;font:inherit;font-size:17px;font-weight:600;color:var(--text);background:transparent;border:1px solid transparent;border-radius:8px;padding:4px 6px}
+.pname:focus{border-color:var(--line);background:var(--input);outline:none}
+.sub{font-weight:600;color:var(--green);white-space:nowrap}
+.cnt{color:var(--muted);font-size:12px;margin:0 0 6px 6px}
+.row{display:flex;gap:8px;align-items:center;margin:6px 0}
+.row input[type=checkbox]{width:22px;height:22px;accent-color:var(--green);flex:none}
+.row input[type=text],.row input[type=number]{font:inherit;color:var(--text);background:var(--input);border:1px solid var(--line);border-radius:8px;padding:8px;min-width:0}
+.row input[type=text]{flex:1}
+.cost{display:flex;align-items:center;gap:4px;width:92px;flex:none}
+.cost input{width:100%}
+.row.done input[type=text]{text-decoration:line-through;color:var(--muted)}
+button{font:inherit;color:var(--muted);background:none;border:1px solid var(--line);border-radius:8px;padding:6px 12px;cursor:pointer}
+.bin{flex:none;padding:4px 8px;border-color:transparent;font-size:18px;line-height:1}
+.bin:hover{background:var(--input)}
+.add{display:block;width:100%;border-style:dashed;color:var(--green);font-weight:600;padding:8px;margin-top:8px}
+.addp{max-width:640px;margin:0 auto 16px;border-color:var(--green)}
+footer{max-width:640px;margin:0 auto 24px;padding:0 16px;color:var(--muted);font-size:13px}
+#ov{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:30;padding:16px}
+#ov.on{display:flex}
+#dlg{background:var(--card);color:var(--text);border-radius:14px;padding:18px;max-width:340px;width:100%;box-shadow:0 8px 30px rgba(0,0,0,.3)}
+#dlg h3{margin:0 0 6px;font-size:18px}
+#dlg p{margin:0 0 16px;color:var(--muted)}
+#dlg .btns{display:flex;gap:8px;justify-content:flex-end}
+#dlg .ok{background:var(--accent);color:#fff;border-color:var(--accent)}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+<h1>🎄 Xmas Shopping Checklist</h1>
+<div class="stats">
+<div class="stat total"><small>Total cost</small><b id="tot">£0.00</b></div>
+<div class="stat"><small>Bought so far</small><b id="spent">£0.00</b></div>
+<div class="stat"><small>Items ticked</small><b id="cnt">0 / 0</b></div>
+</div>
+<div class="bar"><i id="bar"></i></div>
+</div></header>
+<main id="main"></main>
+<footer>Your entries save automatically in this browser, so reopen this page on the same device to pick up where you left off.</footer>
+<div id="ov"><div id="dlg" role="dialog" aria-modal="true"><h3 id="dt"></h3><p id="dm"></p><div class="btns"><button id="cancel">Cancel</button><button id="okb" class="ok">OK</button></div></div></div>
+<script>
+var DEFAULTS=[["Elijah",5],["Florence",5],["Mum",2],["Dad",2],["James",2],["Elaine",1],["Gary",1],["Layla & Jack",1]];
+var K1="xmas2026-checklist-v1",K2="xmas2026-checklist-v2";
+function blank(){return {n:"",c:"",d:false}}
+function load(){
+  try{var s=JSON.parse(localStorage.getItem(K2)||"null");if(s&&s.people)return s}catch(e){}
+  var old={};try{old=JSON.parse(localStorage.getItem(K1)||"{}")||{}}catch(e){old={}}
+  return {people:DEFAULTS.map(function(p){
+    var arr=old[p[0]]||[],items=[];
+    for(var i=0;i<p[1];i++)items.push(arr[i]||blank());
+    return {name:p[0],items:items};
+  })};
+}
+var state=load();
+function save(){try{localStorage.setItem(K2,JSON.stringify(state))}catch(e){}}
+var money=new Intl.NumberFormat("en-GB",{style:"currency",currency:"GBP"});
+var main=document.getElementById("main"),subEls=[];
+
+var ov=document.getElementById("ov"),pending=null;
+function ask(title,msg,cb){
+  document.getElementById("dt").textContent=title;
+  document.getElementById("dm").textContent=msg;
+  pending=cb;ov.classList.add("on");document.getElementById("cancel").focus();
+}
+function closeAsk(){ov.classList.remove("on");pending=null}
+document.getElementById("cancel").onclick=closeAsk;
+document.getElementById("okb").onclick=function(){var f=pending;closeAsk();if(f)f()};
+ov.onclick=function(e){if(e.target===ov)closeAsk()};
+document.addEventListener("keydown",function(e){if(e.key==="Escape"&&ov.classList.contains("on"))closeAsk()});
+
+function el(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e}
+
+function build(focus){
+  main.innerHTML="";subEls=[];
+  state.people.forEach(function(p,pi){
+    var sec=el("section");
+    var sh=el("div","sh");
+    var pn=el("input","pname");pn.type="text";pn.value=p.name;pn.placeholder="Name";pn.setAttribute("aria-label","Person name");
+    pn.oninput=function(){p.name=pn.value;save()};
+    var sub=el("span","sub");
+    var pb=el("button","bin","🗑");pb.title="Remove person";pb.setAttribute("aria-label","Remove person");
+    pb.onclick=function(){
+      ask("Remove line","Remove "+(p.name||"this person")+" and all their gifts?",function(){
+        state.people.splice(pi,1);save();build();update();
+      });
+    };
+    sh.appendChild(pn);sh.appendChild(sub);sh.appendChild(pb);sec.appendChild(sh);
+    var cnt=el("div","cnt");sec.appendChild(cnt);
+    subEls[pi]={sub:sub,cnt:cnt};
+    p.items.forEach(function(it,ii){
+      var row=el("div","row"+(it.d?" done":""));
+      var cb=el("input");cb.type="checkbox";cb.checked=!!it.d;cb.setAttribute("aria-label","Bought");
+      var nm=el("input");nm.type="text";nm.placeholder="Present "+(ii+1);nm.value=it.n;nm.setAttribute("aria-label","Item name");
+      var cw=el("label","cost");cw.appendChild(document.createTextNode("£"));
+      var co=el("input");co.type="number";co.min="0";co.step="0.01";co.inputMode="decimal";co.placeholder="0.00";co.value=it.c;co.setAttribute("aria-label","Cost in pounds");
+      cw.appendChild(co);
+      var ib=el("button","bin","🗑");ib.title="Remove line";ib.setAttribute("aria-label","Remove line");
+      cb.onchange=function(){it.d=cb.checked;row.classList.toggle("done",it.d);save();update()};
+      nm.oninput=function(){it.n=nm.value;save()};
+      co.oninput=function(){it.c=co.value;save();update()};
+      ib.onclick=function(){
+        ask("Remove line","Remove this gift"+(it.n?" ("+it.n+")":"")+" for "+(p.name||"this person")+"?",function(){
+          p.items.splice(ii,1);save();build();update();
+        });
+      };
+      row.appendChild(cb);row.appendChild(nm);row.appendChild(cw);row.appendChild(ib);sec.appendChild(row);
+    });
+    var ab=el("button","add","+ Add gift");
+    ab.onclick=function(){p.items.push(blank());save();build({pi:pi,gift:true});update()};
+    sec.appendChild(ab);
+    main.appendChild(sec);
+  });
+  var ap=el("button","add addp","+ Add person");
+  ap.onclick=function(){state.people.push({name:"",items:[blank()]});save();build({pi:state.people.length-1,person:true});update()};
+  main.appendChild(ap);
+  if(focus){
+    var sec=main.children[focus.pi],t;
+    if(sec){
+      if(focus.person)t=sec.querySelector(".pname");
+      else{var a=sec.querySelectorAll(".row input[type=text]");t=a[a.length-1]}
+      if(t)t.focus();
+    }
+  }
+}
+
+function update(){
+  var tot=0,spent=0,ticked=0,all=0;
+  state.people.forEach(function(p,pi){
+    var s=0,t=0;
+    p.items.forEach(function(it){
+      var v=parseFloat(it.c)||0;s+=v;all++;
+      if(it.d){t++;spent+=v}
+    });
+    ticked+=t;tot+=s;
+    if(subEls[pi]){
+      subEls[pi].sub.textContent=money.format(s);
+      subEls[pi].cnt.textContent=t+" / "+p.items.length+" bought";
+    }
+  });
+  document.getElementById("tot").textContent=money.format(tot);
+  document.getElementById("spent").textContent=money.format(spent);
+  document.getElementById("cnt").textContent=ticked+" / "+all;
+  document.getElementById("bar").style.width=(all?ticked/all*100:0)+"%";
+}
+build();update();
+</script>
+</body>
+</html>
