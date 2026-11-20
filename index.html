@@ -65,15 +65,14 @@ footer{max-width:640px;margin:0 auto 24px;padding:0 16px;color:var(--muted);font
 <footer>Your entries save automatically in this browser, so reopen this page on the same device to pick up where you left off.</footer>
 <div id="ov"><div id="dlg" role="dialog" aria-modal="true"><h3 id="dt"></h3><p id="dm"></p><div class="btns"><button id="cancel">Cancel</button><button id="okb" class="ok">OK</button></div></div></div>
 <script>
-var DEFAULTS=[["Elijah",5],["Florence",5],["Mum",2],["Dad",2],["James",2],["Elaine",1],["Gary",1],["Layla & Jack",1]];
-var K1="xmas2026-checklist-v1",K2="xmas2026-checklist-v2";
+var DEFAULTS=[["Person 1",5],["Person 2",5],["Person 3",2],["Person 4",2],["Person 5",2],["Person 6",1],["Person 7",1],["Person 8",1]];
+var K2="xmas-checklist-v2";
 function blank(){return {n:"",c:"",d:false}}
 function load(){
   try{var s=JSON.parse(localStorage.getItem(K2)||"null");if(s&&s.people)return s}catch(e){}
-  var old={};try{old=JSON.parse(localStorage.getItem(K1)||"{}")||{}}catch(e){old={}}
   return {people:DEFAULTS.map(function(p){
-    var arr=old[p[0]]||[],items=[];
-    for(var i=0;i<p[1];i++)items.push(arr[i]||blank());
+    var items=[];
+    for(var i=0;i<p[1];i++)items.push(blank());
     return {name:p[0],items:items};
   })};
 }
